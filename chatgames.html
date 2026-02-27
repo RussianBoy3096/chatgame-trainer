@@ -1,0 +1,1702 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ChatGame Trainer</title>
+        <link rel="icon" type="image/x-icon" href="assets/icon.ico" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                user-select: none;
+            }
+
+            @font-face {
+                font-family: "Minecraft";
+                src: url("assets/minecraft.ttf") format("truetype");
+                font-weight: normal;
+                font-style: normal;
+                font-display: swap;
+            }
+
+            :root {
+                --bg-color: #1a1a1a;
+                --container-color: #121212;
+                --panel-color: #1e1e1e;
+                --border-color: #2a2a2a;
+                --border-light: #3a3a3a;
+                --border-dark: #0a0a0a;
+                --text-color: #ffffff;
+                --text-dim: #888888;
+                --accent-color: #00aa00;
+                --accent2-color: #ffaa00;
+                --error-color: #ff0000;
+                --highlight-color: #ff55ff;
+                --shadow-color: rgba(0, 255, 0, 0.2);
+                --correct-color: #aaffaa;
+                --incorrect-bg: rgba(255, 0, 0, 0.2);
+            }
+
+            body {
+                background: var(--bg-color);
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-family: "Minecraft", "Press Start 2P", monospace;
+                image-rendering: pixelated;
+                padding: 20px;
+                transition: background-color 0.3s ease;
+            }
+
+            #game-container {
+                width: 800px;
+                max-width: 100%;
+                background: var(--container-color);
+                border: 4px solid var(--border-color);
+                border-radius: 0px;
+                padding: 20px;
+                box-shadow: 0 0 30px var(--shadow-color);
+                transition: all 0.3s ease;
+            }
+
+            .minecraft-panel {
+                background: var(--panel-color);
+                border: 4px solid var(--border-color);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+                image-rendering: pixelated;
+                transition:
+                    background-color 0.3s ease,
+                    border-color 0.3s ease;
+            }
+
+            h1 {
+                color: var(--accent-color);
+                text-align: center;
+                font-size: 32px;
+                margin-bottom: 20px;
+                text-shadow: 4px 4px 0 #003300;
+                letter-spacing: 2px;
+                font-family: "Minecraft", monospace;
+                transition: color 0.3s ease;
+            }
+
+            #challenge-area {
+                background: var(--panel-color);
+                border: 4px solid var(--border-color);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+                padding: 30px 15px;
+                margin-bottom: 10px;
+                min-height: 200px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                transition:
+                    background-color 0.3s ease,
+                    border-color 0.3s ease;
+            }
+
+            #game-type {
+                color: var(--accent2-color);
+                font-size: 18px;
+                margin-bottom: 20px;
+                text-align: center;
+                font-family: "Minecraft", monospace;
+                transition: color 0.3s ease;
+            }
+
+            #challenge-text {
+                color: var(--text-color);
+                font-size: 18px;
+                text-align: center;
+                line-height: 2;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 5px;
+                font-family: "Minecraft", monospace;
+                transition: color 0.3s ease;
+            }
+
+            .text-highlight {
+                color: var(--highlight-color);
+                font-weight: bold;
+                font-size: 20px;
+                transition: color 0.3s ease;
+            }
+
+            .text-gold {
+                color: var(--accent2-color);
+                font-weight: bold;
+                font-size: 20px;
+                transition: color 0.3s ease;
+            }
+
+            #time-left {
+                color: var(--accent2-color);
+                font-size: 16px;
+                margin-top: 20px;
+                text-align: center;
+                font-family: "Minecraft", monospace;
+                transition: color 0.3s ease;
+            }
+
+            #input-area {
+                margin-bottom: 10px;
+            }
+
+            #answer-input {
+                width: 100%;
+                padding: 15px;
+                background: var(--panel-color);
+                border: 4px solid var(--border-color);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+                color: var(--text-color);
+                font-family: "Minecraft", monospace;
+                font-size: 18px;
+                text-align: center;
+                outline: none;
+                transition: all 0.3s ease;
+            }
+
+            #answer-input:focus {
+                border-color: var(--highlight-color);
+            }
+
+            #answer-input::placeholder {
+                color: #555;
+                font-size: 16px;
+            }
+
+            #live-feedback {
+                font-family: "Minecraft", monospace;
+                font-size: 24px;
+                text-align: center;
+                margin: 15px 0;
+                min-height: 40px;
+                letter-spacing: 2px;
+                color: var(--text-color);
+                transition: color 0.3s ease;
+            }
+
+            .correct-char {
+                color: var(--correct-color);
+            }
+
+            .incorrect-char {
+                color: var(--error-color);
+                text-decoration: underline wavy var(--error-color);
+                background-color: var(--incorrect-bg);
+            }
+
+            .pending-char {
+                color: var(--text-dim);
+            }
+
+            .extra-char {
+                color: var(--error-color);
+                background-color: var(--incorrect-bg);
+                text-decoration: line-through;
+            }
+
+            #feedback-area {
+                min-height: 80px;
+                margin-bottom: 10px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                color: var(--text-color);
+                font-size: 14px;
+                font-family: "Minecraft", monospace;
+                padding: 10px;
+                background: var(--panel-color);
+                border: 2px solid var(--border-color);
+                transition: all 0.3s ease;
+            }
+
+            .rank-image {
+                width: 32px;
+                height: 32px;
+                image-rendering: pixelated;
+                display: inline-block;
+                vertical-align: middle;
+            }
+
+            #timer-info {
+                color: var(--accent2-color);
+                font-size: 14px;
+                text-align: center;
+                margin-bottom: 10px;
+                font-family: "Minecraft", monospace;
+                min-height: 25px;
+                transition: color 0.3s ease;
+            }
+
+            .button-grid {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 10px;
+            }
+
+            .minecraft-btn {
+                background: var(--panel-color);
+                border: 4px solid var(--border-color);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+                color: white;
+                font-family: "Minecraft", monospace;
+                font-size: 14px;
+                padding: 12px 24px;
+                cursor: pointer;
+                transition: all 0.1s;
+                text-transform: uppercase;
+                min-width: 120px;
+            }
+
+            .minecraft-btn:hover:not(:disabled) {
+                background: #2a2a2a;
+                transform: translateY(-2px);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+            }
+
+            .minecraft-btn:active:not(:disabled) {
+                transform: translateY(2px);
+                border-top-color: var(--border-dark);
+                border-left-color: var(--border-dark);
+                border-bottom-color: var(--border-light);
+                border-right-color: var(--border-light);
+            }
+
+            .minecraft-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+            .btn-start {
+                color: var(--accent-color);
+            }
+
+            .btn-stop {
+                color: var(--error-color);
+            }
+
+            .btn-settings {
+                color: #aaaaaa;
+            }
+
+            .btn-highscores {
+                color: #aa55ff;
+            }
+
+            /* Tooltips estilo Minecraft */
+            .tooltip {
+                position: relative;
+            }
+
+            .tooltip:hover::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--panel-color);
+                color: var(--text-color);
+                border: 3px solid var(--border-color);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+                padding: 8px 12px;
+                font-size: 12px;
+                white-space: nowrap;
+                z-index: 1000;
+                margin-bottom: 8px;
+                font-family: "Minecraft", monospace;
+                text-transform: none;
+                transition: all 0.3s ease;
+            }
+
+            /* Modal styles */
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                z-index: 2000;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .modal.active {
+                display: flex;
+            }
+
+            .modal-content {
+                background: var(--container-color);
+                border: 4px solid var(--border-color);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+                padding: 25px;
+                max-width: 550px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                transition: all 0.3s ease;
+            }
+
+            .modal-title {
+                color: var(--accent2-color);
+                font-size: 20px;
+                margin-bottom: 20px;
+                text-align: center;
+                font-family: "Minecraft", monospace;
+                transition: color 0.3s ease;
+            }
+
+            .settings-item {
+                margin-bottom: 20px;
+                color: var(--text-color);
+                font-family: "Minecraft", monospace;
+                transition: color 0.3s ease;
+            }
+
+            .settings-item label {
+                display: block;
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+
+            .settings-item input[type="range"] {
+                width: 100%;
+                margin: 8px 0;
+                height: 8px;
+                background: #333;
+            }
+
+            .settings-item span {
+                color: var(--accent2-color);
+                font-size: 16px;
+                transition: color 0.3s ease;
+            }
+
+            .theme-selector {
+                margin: 20px 0;
+                padding: 15px;
+                background: var(--panel-color);
+                border: 3px solid var(--border-color);
+                transition: all 0.3s ease;
+            }
+
+            .theme-selector-title {
+                color: var(--accent2-color);
+                font-size: 16px;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+
+            .theme-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+            }
+
+            .theme-option {
+                background: var(--panel-color);
+                border: 3px solid var(--border-color);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+                padding: 15px;
+                cursor: pointer;
+                text-align: center;
+                transition: all 0.2s ease;
+                font-size: 12px;
+                color: var(--text-color);
+            }
+
+            .theme-option:hover {
+                transform: translateY(-2px);
+                border-color: var(--accent2-color);
+            }
+
+            .theme-option.active {
+                border-color: var(--accent-color);
+                border-width: 4px;
+            }
+
+            .theme-preview {
+                display: flex;
+                gap: 8px;
+                justify-content: center;
+                margin-top: 10px;
+            }
+
+            .theme-color {
+                width: 25px;
+                height: 25px;
+                border: 2px solid var(--border-color);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+            }
+
+            .highscore-entry {
+                background: var(--panel-color);
+                border: 3px solid var(--border-color);
+                border-top-color: var(--border-light);
+                border-left-color: var(--border-light);
+                border-bottom-color: var(--border-dark);
+                border-right-color: var(--border-dark);
+                padding: 10px 12px;
+                margin: 10px 0;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-family: "Minecraft", monospace;
+                font-size: 14px;
+                color: var(--text-color);
+                transition: all 0.3s ease;
+            }
+
+            .close-btn {
+                margin-top: 20px;
+                width: 100%;
+                background: #555;
+                color: white;
+            }
+
+            .flash-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 9999;
+                animation: fadeOut 0.5s ease-out forwards;
+            }
+
+            @keyframes fadeOut {
+                from {
+                    opacity: 0.8;
+                }
+                to {
+                    opacity: 0;
+                }
+            }
+
+            @media (max-width: 600px) {
+                h1 {
+                    font-size: 24px;
+                }
+                #game-type {
+                    font-size: 16px;
+                }
+                #challenge-text {
+                    font-size: 14px;
+                }
+                .text-highlight,
+                .text-gold {
+                    font-size: 16px;
+                }
+                #answer-input {
+                    font-size: 16px;
+                    padding: 12px;
+                }
+                #live-feedback {
+                    font-size: 18px;
+                }
+                .minecraft-btn {
+                    font-size: 12px;
+                    padding: 10px 16px;
+                    min-width: 100px;
+                }
+                .theme-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div id="game-container">
+            <h1>CHATGAME TRAINER</h1>
+
+            <div id="challenge-area">
+                <div id="game-type">[Ready]</div>
+                <div id="challenge-text">Press START to begin</div>
+                <div id="live-feedback"></div>
+                <div id="time-left"></div>
+            </div>
+
+            <div id="input-area">
+                <input
+                    type="text"
+                    id="answer-input"
+                    placeholder="Type your answer here..."
+                    disabled
+                />
+            </div>
+
+            <div id="feedback-area"></div>
+            <div id="timer-info"></div>
+
+            <div class="button-grid">
+                <button
+                    id="start-btn"
+                    class="minecraft-btn btn-start tooltip"
+                    data-tooltip="CTRL+ENTER"
+                >
+                    START
+                </button>
+                <button
+                    id="stop-btn"
+                    class="minecraft-btn btn-stop tooltip"
+                    data-tooltip="ESC to stop, TAB to restart"
+                    disabled
+                >
+                    STOP
+                </button>
+                <button id="settings-btn" class="minecraft-btn btn-settings">
+                    SETTINGS
+                </button>
+                <button
+                    id="highscores-btn"
+                    class="minecraft-btn btn-highscores"
+                >
+                    HIGHSCORES
+                </button>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-title">GAME SETTINGS</div>
+
+                <!-- Theme Selector -->
+                <div class="theme-selector">
+                    <div class="theme-selector-title">SELECT THEME</div>
+                    <div class="theme-grid" id="theme-grid"></div>
+                </div>
+
+                <div id="probabilities-container"></div>
+
+                <div class="settings-item">
+                    <label>Max Time: <span id="max-time-value">8</span>s</label>
+                    <input
+                        type="range"
+                        id="max-time"
+                        min="2"
+                        max="20"
+                        value="8"
+                    />
+                </div>
+                <div class="settings-item">
+                    <label
+                        >Interval Min:
+                        <span id="interval-min-value">2</span>s</label
+                    >
+                    <input
+                        type="range"
+                        id="interval-min"
+                        min="0"
+                        max="15"
+                        value="2"
+                    />
+                </div>
+                <div class="settings-item">
+                    <label
+                        >Interval Max:
+                        <span id="interval-max-value">7</span>s</label
+                    >
+                    <input
+                        type="range"
+                        id="interval-max"
+                        min="0"
+                        max="15"
+                        value="7"
+                    />
+                </div>
+                <button id="close-settings" class="minecraft-btn close-btn">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+
+        <!-- Highscores Modal -->
+        <div id="highscores-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-title">HIGHSCORES</div>
+                <div id="highscores-container"></div>
+                <button id="close-highscores" class="minecraft-btn close-btn">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+
+        <script>
+            // ==================== CONFIGURACIÓN ====================
+            const HIGHSCORES_KEY = "chatgame_highscores";
+            const PROBABILITIES_KEY = "chatgame_probabilities";
+            const SETTINGS_KEY = "chatgame_settings";
+            const THEME_KEY = "chatgame_theme";
+
+            const DEFAULT_SETTINGS = {
+                interval_min: 2,
+                interval_max: 7,
+                max_time: 8,
+            };
+
+            const DEFAULT_PROBABILITIES = {
+                unscramble: 20,
+                unreverse: 20,
+                reaction: 20,
+                fillout: 20,
+                random: 10,
+                math: 10,
+            };
+
+            // ==================== SISTEMA DE TEMAS ====================
+            const THEMES = {
+                "Minecraft Classic": {
+                    bg: "#1a1a1a",
+                    container: "#121212",
+                    panel: "#1e1e1e",
+                    border: "#2a2a2a",
+                    borderLight: "#3a3a3a",
+                    borderDark: "#0a0a0a",
+                    text: "#ffffff",
+                    textDim: "#888888",
+                    accent: "#00aa00",
+                    accent2: "#ffaa00",
+                    error: "#ff0000",
+                    highlight: "#ff55ff",
+                    shadow: "rgba(0,255,0,0.2)",
+                    correct: "#aaffaa",
+                    btnText: "#ffffff",
+                    preview: ["#1e1e1e", "#00aa00", "#ffaa00"],
+                },
+                Matrix: {
+                    bg: "#000000",
+                    container: "#0a0a0a",
+                    panel: "#0f0f0f",
+                    border: "#1f3f1f",
+                    borderLight: "#2f5f2f",
+                    borderDark: "#0f2f0f",
+                    text: "#aaffaa",
+                    textDim: "#2f5f2f",
+                    accent: "#00ff00",
+                    accent2: "#00cc00",
+                    error: "#ff0000",
+                    highlight: "#00ffff",
+                    shadow: "rgba(0,255,0,0.5)",
+                    correct: "#00ff00",
+                    btnText: "#aaffaa",
+                    preview: ["#0f0f0f", "#00ff00", "#00cc00"],
+                },
+                "Deep Ocean": {
+                    bg: "#051525",
+                    container: "#0a1a2a",
+                    panel: "#0f1f2f",
+                    border: "#1f3f5f",
+                    borderLight: "#2f5f7f",
+                    borderDark: "#0f2f4f",
+                    text: "#cfdfff",
+                    textDim: "#5f7f9f",
+                    accent: "#4ab3ff",
+                    accent2: "#ff9f4a",
+                    error: "#ff6b6b",
+                    highlight: "#ffd966",
+                    shadow: "rgba(74,163,255,0.3)",
+                    correct: "#4ab3ff",
+                    btnText: "#cfdfff",
+                    preview: ["#0f1f2f", "#4ab3ff", "#ff9f4a"],
+                },
+                "Crimson Night": {
+                    bg: "#1a0505",
+                    container: "#2a0a0a",
+                    panel: "#2f0f0f",
+                    border: "#5f2f2f",
+                    borderLight: "#7f4f4f",
+                    borderDark: "#3f1f1f",
+                    text: "#ffcfcf",
+                    textDim: "#af7f7f",
+                    accent: "#ff6f6f",
+                    accent2: "#ff9f6f",
+                    error: "#ff0000",
+                    highlight: "#ffaf6f",
+                    shadow: "rgba(255,0,0,0.2)",
+                    correct: "#ff8f8f",
+                    btnText: "#ffcfcf",
+                    preview: ["#2f0f0f", "#ff6f6f", "#ff9f6f"],
+                },
+                Shadow: {
+                    bg: "#000000",
+                    container: "#0f0f0f",
+                    panel: "#1a1a1a",
+                    border: "#2a2a2a",
+                    borderLight: "#3a3a3a",
+                    borderDark: "#0a0a0a",
+                    text: "#ffffff",
+                    textDim: "#888888",
+                    accent: "#ffffff",
+                    accent2: "#cccccc",
+                    error: "#ff0000",
+                    highlight: "#ffffff",
+                    shadow: "rgba(255,255,255,0.2)",
+                    correct: "#ffffff",
+                    btnText: "#ffffff",
+                    preview: ["#1a1a1a", "#ffffff", "#cccccc"],
+                },
+            };
+
+            let currentTheme =
+                localStorage.getItem(THEME_KEY) || "Minecraft Classic";
+
+            function applyTheme(themeName) {
+                const theme = THEMES[themeName];
+                if (!theme) return;
+
+                const root = document.documentElement;
+
+                root.style.setProperty("--bg-color", theme.bg);
+                root.style.setProperty("--container-color", theme.container);
+                root.style.setProperty("--panel-color", theme.panel);
+                root.style.setProperty("--border-color", theme.border);
+                root.style.setProperty("--border-light", theme.borderLight);
+                root.style.setProperty("--border-dark", theme.borderDark);
+                root.style.setProperty("--text-color", theme.text);
+                root.style.setProperty("--text-dim", theme.textDim);
+                root.style.setProperty("--accent-color", theme.accent);
+                root.style.setProperty("--accent2-color", theme.accent2);
+                root.style.setProperty("--error-color", theme.error);
+                root.style.setProperty("--highlight-color", theme.highlight);
+                root.style.setProperty("--shadow-color", theme.shadow);
+                root.style.setProperty("--correct-color", theme.correct);
+
+                localStorage.setItem(THEME_KEY, themeName);
+                currentTheme = themeName;
+
+                // Update active state in theme grid
+                document.querySelectorAll(".theme-option").forEach((opt) => {
+                    opt.classList.toggle(
+                        "active",
+                        opt.dataset.theme === themeName,
+                    );
+                });
+            }
+
+            // ==================== PALABRAS ====================
+            const WORD_SETS = {
+                unscramble: ["Day", "Night", "Morning", "Afternoon"],
+                unreverse: ["Stone", "Redstone", "Lapislazuli", "Iron"],
+                reaction: ["Sky", "Ground", "Air", "Fire"],
+                fillout: ["Minecraft", "Iron", "Diamond", "Lava"],
+            };
+
+            const RANK_THRESHOLDS = {
+                Air: [0.7, 1.05, 1.4, 1.8, 2.2],
+                Day: [0.7, 1.05, 1.4, 1.8, 2.2],
+                Sky: [0.7, 1.05, 1.4, 1.8, 2.2],
+                Stone: [0.85, 1.2, 1.55, 2.0, 2.5],
+                Iron: [0.9, 1.3, 1.65, 2.1, 2.6],
+                Fire: [0.8, 1.25, 1.6, 2.0, 2.5],
+                Night: [0.85, 1.2, 1.55, 2.0, 2.5],
+                Lava: [0.85, 1.2, 1.55, 2.0, 2.5],
+                Ground: [1.05, 1.4, 1.75, 2.2, 2.7],
+                Redstone: [1.0, 1.4, 1.8, 2.2, 2.8],
+                Lapislazuli: [1.5, 1.95, 2.3, 2.7, 3.2],
+                Minecraft: [1.2, 1.6, 1.95, 2.4, 3.0],
+                Diamond: [1.0, 1.35, 1.7, 2.1, 2.6],
+                Morning: [0.95, 1.3, 1.65, 2.1, 2.6],
+                Afternoon: [1.1, 1.45, 1.8, 2.2, 2.7],
+            };
+
+            const RANK_IMAGES = {
+                netherite: "assets/netherite.png",
+                emerald: "assets/emerald.png",
+                diamond: "assets/diamond.png",
+                gold: "assets/gold.png",
+                iron: "assets/iron.png",
+                copper: "assets/copper.png",
+            };
+
+            // ==================== CARGA DE RECURSOS ====================
+            const imageCache = {};
+
+            function preloadImages() {
+                for (const [key, path] of Object.entries(RANK_IMAGES)) {
+                    const img = new Image();
+                    img.src = path;
+                    imageCache[key] = img;
+                }
+            }
+
+            const audioElements = {};
+
+            function preloadSounds() {
+                const sounds = [
+                    "menu",
+                    "question",
+                    "answer",
+                    "miss",
+                    "hit",
+                    "rare",
+                    "note",
+                ];
+
+                sounds.forEach((name) => {
+                    const audio = new Audio();
+                    audio.src = `assets/${name}.ogg`;
+                    audio.load();
+                    audioElements[name] = audio;
+                });
+            }
+
+            function playSound(name) {
+                const audio = audioElements[name];
+                if (!audio) return;
+
+                try {
+                    const sound = audio.cloneNode();
+                    sound.volume = 0.5;
+                    sound.play().catch(() => {});
+                } catch (e) {}
+            }
+
+            function getRankImageElement(word, time) {
+                const thresholds = RANK_THRESHOLDS[word] || [
+                    0.8, 1.0, 1.4, 1.8, 2.2,
+                ];
+                let rankKey;
+
+                if (time < thresholds[0]) rankKey = "netherite";
+                else if (time < thresholds[1]) rankKey = "emerald";
+                else if (time < thresholds[2]) rankKey = "diamond";
+                else if (time < thresholds[3]) rankKey = "gold";
+                else if (time < thresholds[4]) rankKey = "iron";
+                else rankKey = "copper";
+
+                const img = document.createElement("img");
+                img.src = RANK_IMAGES[rankKey];
+                img.className = "rank-image";
+                img.alt = rankKey;
+                return img;
+            }
+
+            // ==================== ESTADO DEL JUEGO ====================
+            let gameState = {
+                active: false,
+                waiting: false,
+                timerRunning: false,
+                timeLeft: 0,
+                currentGame: null,
+                currentSolution: "",
+                currentWordKey: "",
+                startTime: 0,
+                timerInterval: null,
+                countdownTimeout: null,
+                settings: { ...DEFAULT_SETTINGS },
+                probabilities: { ...DEFAULT_PROBABILITIES },
+                highscores: {},
+            };
+
+            function loadSavedData() {
+                try {
+                    const saved = localStorage.getItem(HIGHSCORES_KEY);
+                    if (saved) gameState.highscores = JSON.parse(saved);
+
+                    const probs = localStorage.getItem(PROBABILITIES_KEY);
+                    if (probs) gameState.probabilities = JSON.parse(probs);
+
+                    const sets = localStorage.getItem(SETTINGS_KEY);
+                    if (sets) gameState.settings = JSON.parse(sets);
+                } catch (e) {}
+            }
+
+            function saveHighscores() {
+                localStorage.setItem(
+                    HIGHSCORES_KEY,
+                    JSON.stringify(gameState.highscores),
+                );
+            }
+
+            function saveProbabilities() {
+                localStorage.setItem(
+                    PROBABILITIES_KEY,
+                    JSON.stringify(gameState.probabilities),
+                );
+            }
+
+            function saveSettings() {
+                localStorage.setItem(
+                    SETTINGS_KEY,
+                    JSON.stringify(gameState.settings),
+                );
+            }
+
+            function screenFlash(color) {
+                const flash = document.createElement("div");
+                flash.className = "flash-overlay";
+                flash.style.backgroundColor = color;
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 500);
+            }
+
+            // ==================== FEEDBACK EN TIEMPO REAL ====================
+            function updateLiveFeedback() {
+                const liveFeedback = document.getElementById("live-feedback");
+
+                if (
+                    !gameState.active ||
+                    gameState.waiting ||
+                    !gameState.timerRunning
+                ) {
+                    liveFeedback.innerHTML = "";
+                    return;
+                }
+
+                // Para matemáticas, no mostrar feedback visual
+                if (gameState.currentGame === "math") {
+                    liveFeedback.innerHTML = "";
+                    return;
+                }
+
+                const input = document.getElementById("answer-input");
+                const currentValue = input.value;
+                const target = gameState.currentSolution;
+
+                let html = "";
+
+                // Mostrar cada carácter de la solución con su estado
+                for (let i = 0; i < target.length; i++) {
+                    if (i < currentValue.length) {
+                        if (currentValue[i] === target[i]) {
+                            html += `<span class="correct-char">${target[i]}</span>`;
+                        } else {
+                            html += `<span class="incorrect-char">${target[i]}</span>`;
+                        }
+                    } else {
+                        html += `<span class="pending-char">${target[i]}</span>`;
+                    }
+                }
+
+                // Si hay caracteres extra, mostrarlos como error
+                if (currentValue.length > target.length) {
+                    const extra = currentValue.substring(target.length);
+                    html += `<span class="extra-char">${extra}</span>`;
+                }
+
+                liveFeedback.innerHTML = html;
+            }
+
+            // ==================== LÓGICA DEL JUEGO ====================
+            function generateChallenge() {
+                if (!gameState.active) return;
+
+                if (gameState.timerInterval) {
+                    clearInterval(gameState.timerInterval);
+                    gameState.timerInterval = null;
+                }
+
+                const games = [];
+                for (const [game, prob] of Object.entries(
+                    gameState.probabilities,
+                )) {
+                    for (let i = 0; i < prob; i++) games.push(game);
+                }
+
+                if (games.length === 0) {
+                    document.getElementById("challenge-text").innerHTML =
+                        "No games enabled! Check settings.";
+                    stopGame();
+                    return;
+                }
+
+                const selectedGame =
+                    games[Math.floor(Math.random() * games.length)];
+                gameState.currentGame = selectedGame;
+                gameState.startTime = Date.now();
+                const maxTime = gameState.settings.max_time;
+
+                let gameName, challengeText, action, solution, wordKey;
+
+                switch (selectedGame) {
+                    case "unscramble":
+                        wordKey =
+                            WORD_SETS.unscramble[
+                                Math.floor(
+                                    Math.random() * WORD_SETS.unscramble.length,
+                                )
+                            ];
+                        const scrambled = wordKey
+                            .split("")
+                            .sort(() => Math.random() - 0.5)
+                            .join("");
+                        solution = wordKey;
+                        gameName = "Unscramble";
+                        challengeText = `You have ${maxTime} seconds to unscramble: ${scrambled}`;
+                        action = "unscramble";
+                        break;
+
+                    case "unreverse":
+                        wordKey =
+                            WORD_SETS.unreverse[
+                                Math.floor(
+                                    Math.random() * WORD_SETS.unreverse.length,
+                                )
+                            ];
+                        const reversed = wordKey.split("").reverse().join("");
+                        solution = wordKey;
+                        gameName = "Unreverse";
+                        challengeText = `You have ${maxTime} seconds to reverse: ${reversed}`;
+                        action = "reverse";
+                        break;
+
+                    case "reaction":
+                        wordKey =
+                            WORD_SETS.reaction[
+                                Math.floor(
+                                    Math.random() * WORD_SETS.reaction.length,
+                                )
+                            ];
+                        solution = wordKey;
+                        gameName = "Reaction";
+                        challengeText = `You have ${maxTime} seconds to type: ${wordKey}`;
+                        action = "type";
+                        break;
+
+                    case "fillout":
+                        wordKey =
+                            WORD_SETS.fillout[
+                                Math.floor(
+                                    Math.random() * WORD_SETS.fillout.length,
+                                )
+                            ];
+                        const hide =
+                            Math.floor(Math.random() * (wordKey.length - 2)) +
+                            1;
+                        const incomplete =
+                            wordKey.substring(0, hide) +
+                            "_" +
+                            wordKey.substring(hide + 1);
+                        solution = wordKey;
+                        gameName = "Fillout";
+                        challengeText = `You have ${maxTime} seconds to complete: ${incomplete}`;
+                        action = "complete";
+                        break;
+
+                    case "random":
+                        const chars =
+                            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                        wordKey = Array(6)
+                            .fill(0)
+                            .map(
+                                () =>
+                                    chars[
+                                        Math.floor(Math.random() * chars.length)
+                                    ],
+                            )
+                            .join("");
+                        solution = wordKey;
+                        gameName = "Random";
+                        challengeText = `You have ${maxTime} seconds to type: ${wordKey}`;
+                        action = "type";
+                        break;
+
+                    case "math":
+                        const operators = ["+", "-"];
+                        const op =
+                            operators[
+                                Math.floor(Math.random() * operators.length)
+                            ];
+                        let a = Math.floor(Math.random() * 99) + 1;
+                        let b = Math.floor(Math.random() * 99) + 1;
+                        let expr = `${a} ${op} ${b}`;
+                        let result = eval(expr).toString();
+                        solution = result;
+                        wordKey = expr;
+                        gameName = "Math";
+                        challengeText = `You have ${maxTime} seconds to solve: ${expr}`;
+                        action = "solve";
+                        break;
+                }
+
+                gameState.currentSolution = solution;
+                gameState.currentWordKey = wordKey;
+
+                document.getElementById("game-type").innerHTML =
+                    `[${gameName}]`;
+
+                if (challengeText.includes(": ")) {
+                    const parts = challengeText.split(": ");
+                    const word = parts[1];
+
+                    document.getElementById("challenge-text").innerHTML = `
+                    You have <span class="text-gold">${maxTime}</span> seconds to
+                    <span class="text-gold">${action}</span>:
+                    <span class="text-highlight">${word}</span>
+                `;
+                } else {
+                    document.getElementById("challenge-text").innerHTML =
+                        challengeText;
+                }
+
+                playSound("question");
+
+                gameState.timeLeft = maxTime;
+                gameState.timerRunning = true;
+                document.getElementById("time-left").innerHTML =
+                    `Time left: ${maxTime}s`;
+                document.getElementById("live-feedback").innerHTML = "";
+
+                gameState.timerInterval = setInterval(() => {
+                    if (!gameState.timerRunning || !gameState.active) {
+                        clearInterval(gameState.timerInterval);
+                        return;
+                    }
+
+                    const elapsed = (Date.now() - gameState.startTime) / 1000;
+                    const remaining = Math.max(
+                        0,
+                        gameState.settings.max_time - elapsed,
+                    );
+
+                    gameState.timeLeft = remaining;
+                    document.getElementById("time-left").innerHTML =
+                        `Time left: ${Math.ceil(remaining)}s`;
+
+                    if (remaining <= 0) {
+                        clearInterval(gameState.timerInterval);
+                        gameState.timerRunning = false;
+                        gameState.timeLeft = 0;
+                        document.getElementById("time-left").innerHTML =
+                            "Time's up!";
+                        document.getElementById("answer-input").disabled = true;
+                        document.getElementById("live-feedback").innerHTML = "";
+                        playSound("miss");
+
+                        document.getElementById("feedback-area").innerHTML =
+                            `<span style="color: var(--error-color)">Time's up! Correct answer was: ${gameState.currentSolution}</span>`;
+                        screenFlash("#FF0000");
+
+                        gameState.waiting = true;
+                        const waitTime =
+                            Math.floor(
+                                Math.random() *
+                                    (gameState.settings.interval_max -
+                                        gameState.settings.interval_min +
+                                        1),
+                            ) + gameState.settings.interval_min;
+                        startCountdown(waitTime);
+                    }
+                }, 50);
+            }
+
+            function submitAnswer() {
+                if (
+                    !gameState.active ||
+                    gameState.waiting ||
+                    !gameState.timerRunning
+                )
+                    return;
+
+                const input = document.getElementById("answer-input");
+                const answer = input.value.trim();
+
+                if (answer === gameState.currentSolution) {
+                    input.value = "";
+                    document.getElementById("live-feedback").innerHTML = "";
+
+                    gameState.timerRunning = false;
+                    if (gameState.timerInterval) {
+                        clearInterval(gameState.timerInterval);
+                    }
+
+                    const totalTime = (Date.now() - gameState.startTime) / 1000;
+
+                    let newRecord = false;
+                    let bestTime = null;
+
+                    if (!["random", "math"].includes(gameState.currentGame)) {
+                        const key = `${gameState.currentGame}:${gameState.currentWordKey}`;
+                        bestTime = gameState.highscores[key];
+                        if (!bestTime || totalTime < bestTime) {
+                            gameState.highscores[key] = totalTime;
+                            saveHighscores();
+                            newRecord = true;
+                        }
+                    }
+
+                    const actionMap = {
+                        unscramble: "unscramble",
+                        unreverse: "reverse",
+                        reaction: "type",
+                        fillout: "complete",
+                        random: "type",
+                        math: "solve",
+                    };
+                    const action = actionMap[gameState.currentGame] || "type";
+
+                    const feedbackArea =
+                        document.getElementById("feedback-area");
+                    feedbackArea.innerHTML = "";
+
+                    // Feedback con el formato original
+                    const youLabel = document.createElement("span");
+                    youLabel.style.color = "#FFD700";
+                    youLabel.textContent = "You";
+                    feedbackArea.appendChild(youLabel);
+
+                    const text1 = document.createElement("span");
+                    text1.textContent = ` were the fastest to ${action}: `;
+                    feedbackArea.appendChild(text1);
+
+                    const solutionSpan = document.createElement("span");
+                    solutionSpan.style.color = "#FF1493";
+                    solutionSpan.style.fontWeight = "bold";
+                    solutionSpan.textContent = gameState.currentSolution;
+                    feedbackArea.appendChild(solutionSpan);
+
+                    const timeSpan = document.createElement("span");
+                    timeSpan.style.color = "#FFD700";
+                    timeSpan.textContent = ` (${totalTime.toFixed(2)}s)`;
+                    feedbackArea.appendChild(timeSpan);
+
+                    const text2 = document.createElement("span");
+                    text2.textContent = " and won a prize!";
+                    feedbackArea.appendChild(text2);
+
+                    const rankImg = getRankImageElement(
+                        gameState.currentWordKey,
+                        totalTime,
+                    );
+                    feedbackArea.appendChild(rankImg);
+
+                    if (rankImg.src.includes("netherite")) {
+                        playSound("rare");
+                        screenFlash("#9900FF");
+                    } else {
+                        playSound("answer");
+                        screenFlash("#00FF00");
+                    }
+
+                    if (newRecord) {
+                        document.getElementById("timer-info").innerHTML =
+                            "NEW RECORD!";
+                    } else if (bestTime) {
+                        document.getElementById("timer-info").innerHTML =
+                            `Your time: ${totalTime.toFixed(2)}s | Record: ${bestTime.toFixed(2)}s`;
+                    } else {
+                        document.getElementById("timer-info").innerHTML = "";
+                    }
+
+                    gameState.waiting = true;
+                    document.getElementById("answer-input").disabled = true;
+                    document.getElementById("time-left").innerHTML = "";
+
+                    const waitTime =
+                        Math.floor(
+                            Math.random() *
+                                (gameState.settings.interval_max -
+                                    gameState.settings.interval_min +
+                                    1),
+                        ) + gameState.settings.interval_min;
+                    startCountdown(waitTime);
+                } else {
+                    document.getElementById("feedback-area").innerHTML =
+                        '<span style="color: var(--error-color)">Wrong! Try again...</span>';
+                    input.value = "";
+                    document.getElementById("live-feedback").innerHTML = "";
+                    screenFlash("#FF0000");
+                    playSound("hit");
+                }
+            }
+
+            function startCountdown(seconds) {
+                if (!gameState.active) return;
+
+                document.getElementById("challenge-text").innerHTML =
+                    `Next challenge in ${seconds} seconds...`;
+
+                if (seconds > 0) {
+                    gameState.countdownTimeout = setTimeout(
+                        () => startCountdown(seconds - 1),
+                        1000,
+                    );
+                    playSound("note");
+                } else {
+                    gameState.waiting = false;
+                    document.getElementById("answer-input").disabled = false;
+                    document.getElementById("answer-input").focus();
+                    generateChallenge();
+                }
+            }
+
+            function startGame() {
+                gameState.active = true;
+                gameState.waiting = false;
+                document.getElementById("start-btn").disabled = true;
+                document.getElementById("stop-btn").disabled = false;
+                document.getElementById("answer-input").disabled = false;
+                document.getElementById("answer-input").focus();
+                document.getElementById("feedback-area").innerHTML = "";
+                document.getElementById("timer-info").innerHTML = "";
+                generateChallenge();
+            }
+
+            function stopGame() {
+                gameState.active = false;
+                gameState.waiting = false;
+                gameState.timerRunning = false;
+
+                if (gameState.timerInterval) {
+                    clearInterval(gameState.timerInterval);
+                }
+                if (gameState.countdownTimeout) {
+                    clearTimeout(gameState.countdownTimeout);
+                }
+
+                document.getElementById("start-btn").disabled = false;
+                document.getElementById("stop-btn").disabled = true;
+                document.getElementById("answer-input").disabled = true;
+                document.getElementById("game-type").innerHTML = "[Stopped]";
+                document.getElementById("challenge-text").innerHTML =
+                    "Game stopped. Press START to play again.";
+                document.getElementById("feedback-area").innerHTML = "";
+                document.getElementById("timer-info").innerHTML = "";
+                document.getElementById("time-left").innerHTML = "";
+                document.getElementById("live-feedback").innerHTML = "";
+            }
+
+            function restartGame() {
+                if (gameState.active) {
+                    stopGame();
+                    startGame();
+                } else {
+                    startGame();
+                }
+            }
+
+            // ==================== MODALES ====================
+            function openSettings() {
+                const modal = document.getElementById("settings-modal");
+                const container = document.getElementById(
+                    "probabilities-container",
+                );
+                const themeGrid = document.getElementById("theme-grid");
+
+                // Theme grid - generar en el orden del objeto (ya está ordenado)
+                themeGrid.innerHTML = "";
+                Object.keys(THEMES).forEach((themeName) => {
+                    const theme = THEMES[themeName];
+                    const option = document.createElement("div");
+                    option.className = `theme-option ${themeName === currentTheme ? "active" : ""}`;
+                    option.dataset.theme = themeName;
+                    option.innerHTML = `
+                    <div>${themeName}</div>
+                    <div class="theme-preview">
+                        ${theme.preview
+                            .map(
+                                (color) =>
+                                    `<div class="theme-color" style="background: ${color}"></div>`,
+                            )
+                            .join("")}
+                    </div>
+                `;
+                    option.addEventListener("click", () =>
+                        applyTheme(themeName),
+                    );
+                    themeGrid.appendChild(option);
+                });
+
+                // Probabilities sliders
+                container.innerHTML = "";
+                for (const [game, value] of Object.entries(
+                    gameState.probabilities,
+                )) {
+                    const div = document.createElement("div");
+                    div.className = "settings-item";
+                    div.innerHTML = `
+                    <label>${game.toUpperCase()}: <span id="prob-${game}">${value}</span>%</label>
+                    <input type="range" id="slider-${game}" min="0" max="100" value="${value}">
+                `;
+                    container.appendChild(div);
+
+                    const slider = div.querySelector("input");
+                    slider.addEventListener("input", (e) => {
+                        document.getElementById(`prob-${game}`).textContent =
+                            e.target.value;
+                    });
+                }
+
+                document.getElementById("max-time").value =
+                    gameState.settings.max_time;
+                document.getElementById("max-time-value").textContent =
+                    gameState.settings.max_time;
+                document.getElementById("interval-min").value =
+                    gameState.settings.interval_min;
+                document.getElementById("interval-min-value").textContent =
+                    gameState.settings.interval_min;
+                document.getElementById("interval-max").value =
+                    gameState.settings.interval_max;
+                document.getElementById("interval-max-value").textContent =
+                    gameState.settings.interval_max;
+
+                modal.classList.add("active");
+            }
+
+            function saveAndCloseSettings() {
+                for (const game of Object.keys(gameState.probabilities)) {
+                    const slider = document.getElementById(`slider-${game}`);
+                    if (slider) {
+                        gameState.probabilities[game] = parseInt(slider.value);
+                    }
+                }
+
+                gameState.settings.max_time = parseInt(
+                    document.getElementById("max-time").value,
+                );
+                gameState.settings.interval_min = parseInt(
+                    document.getElementById("interval-min").value,
+                );
+                gameState.settings.interval_max = parseInt(
+                    document.getElementById("interval-max").value,
+                );
+
+                saveProbabilities();
+                saveSettings();
+
+                document
+                    .getElementById("settings-modal")
+                    .classList.remove("active");
+            }
+
+            function openHighscores() {
+                const modal = document.getElementById("highscores-modal");
+                const container = document.getElementById(
+                    "highscores-container",
+                );
+
+                container.innerHTML = "";
+
+                if (Object.keys(gameState.highscores).length === 0) {
+                    container.innerHTML =
+                        '<div style="color: var(--text-color); text-align: center">No highscores yet! Start playing to set records.</div>';
+                } else {
+                    const grouped = {};
+                    for (const [key, t] of Object.entries(
+                        gameState.highscores,
+                    )) {
+                        if (key.includes(":")) {
+                            const [game, word] = key.split(":");
+                            if (!grouped[game]) grouped[game] = [];
+                            grouped[game].push({ word, time: t });
+                        }
+                    }
+
+                    for (const [game, records] of Object.entries(
+                        grouped,
+                    ).sort()) {
+                        const gameDiv = document.createElement("div");
+                        gameDiv.style.marginBottom = "20px";
+
+                        const title = document.createElement("div");
+                        title.style.color = "var(--accent2-color)";
+                        title.style.marginBottom = "10px";
+                        title.style.fontSize = "14px";
+                        title.style.fontWeight = "bold";
+                        title.textContent = `[${game.toUpperCase()}]`;
+                        gameDiv.appendChild(title);
+
+                        records
+                            .sort((a, b) => a.time - b.time)
+                            .slice(0, 5)
+                            .forEach((record) => {
+                                const entry = document.createElement("div");
+                                entry.className = "highscore-entry";
+
+                                const rankImg = getRankImageElement(
+                                    record.word,
+                                    record.time,
+                                );
+                                entry.appendChild(rankImg);
+
+                                const textSpan = document.createElement("span");
+                                textSpan.style.color = "var(--text-color)";
+                                textSpan.textContent = `${record.word}: `;
+                                entry.appendChild(textSpan);
+
+                                const timeSpan = document.createElement("span");
+                                timeSpan.style.color = "var(--accent2-color)";
+                                timeSpan.textContent = `${record.time.toFixed(2)}s`;
+                                entry.appendChild(timeSpan);
+
+                                gameDiv.appendChild(entry);
+                            });
+
+                        container.appendChild(gameDiv);
+                    }
+                }
+
+                modal.classList.add("active");
+            }
+
+            function closeHighscores() {
+                document
+                    .getElementById("highscores-modal")
+                    .classList.remove("active");
+            }
+
+            // ==================== INICIALIZACIÓN ====================
+            document.addEventListener("DOMContentLoaded", () => {
+                preloadImages();
+                preloadSounds();
+                loadSavedData();
+                applyTheme(currentTheme);
+
+                document
+                    .getElementById("start-btn")
+                    .addEventListener("click", () => {
+                        playSound("menu");
+                        startGame();
+                    });
+
+                document
+                    .getElementById("stop-btn")
+                    .addEventListener("click", () => {
+                        playSound("menu");
+                        stopGame();
+                    });
+
+                document
+                    .getElementById("settings-btn")
+                    .addEventListener("click", () => {
+                        playSound("menu");
+                        openSettings();
+                    });
+
+                document
+                    .getElementById("highscores-btn")
+                    .addEventListener("click", () => {
+                        playSound("menu");
+                        openHighscores();
+                    });
+
+                document
+                    .getElementById("answer-input")
+                    .addEventListener("input", updateLiveFeedback);
+                document
+                    .getElementById("answer-input")
+                    .addEventListener("keypress", (e) => {
+                        if (e.key === "Enter") submitAnswer();
+                    });
+
+                document.addEventListener("keydown", (e) => {
+                    if (e.ctrlKey && e.key === "Enter") {
+                        e.preventDefault();
+                        if (!gameState.active) {
+                            playSound("menu");
+                            startGame();
+                        }
+                    }
+                    if (e.key === "Tab") {
+                        e.preventDefault();
+                        playSound("menu");
+                        restartGame();
+                    }
+                    if (e.key === "Escape") {
+                        e.preventDefault();
+                        if (gameState.active) {
+                            playSound("menu");
+                            stopGame();
+                        }
+                    }
+                });
+
+                document
+                    .getElementById("close-settings")
+                    .addEventListener("click", () => {
+                        playSound("menu");
+                        saveAndCloseSettings();
+                    });
+
+                document
+                    .getElementById("close-highscores")
+                    .addEventListener("click", () => {
+                        playSound("menu");
+                        closeHighscores();
+                    });
+
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape") {
+                        if (
+                            document
+                                .getElementById("settings-modal")
+                                .classList.contains("active")
+                        ) {
+                            saveAndCloseSettings();
+                        }
+                        if (
+                            document
+                                .getElementById("highscores-modal")
+                                .classList.contains("active")
+                        ) {
+                            closeHighscores();
+                        }
+                    }
+                });
+
+                document
+                    .getElementById("max-time")
+                    .addEventListener("input", (e) => {
+                        document.getElementById("max-time-value").textContent =
+                            e.target.value;
+                    });
+                document
+                    .getElementById("interval-min")
+                    .addEventListener("input", (e) => {
+                        document.getElementById(
+                            "interval-min-value",
+                        ).textContent = e.target.value;
+                    });
+                document
+                    .getElementById("interval-max")
+                    .addEventListener("input", (e) => {
+                        document.getElementById(
+                            "interval-max-value",
+                        ).textContent = e.target.value;
+                    });
+            });
+        </script>
+    </body>
+</html>
